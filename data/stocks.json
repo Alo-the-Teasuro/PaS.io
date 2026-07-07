@@ -1,6 +1,6 @@
 {
-  "source": "seed",
-  "updated_at": null,
+  "source": "Finnhub",
+  "updated_at": "2026-07-07T08:43:44+00:00",
   "tiers": [
     {
       "id": "apps",
@@ -10,20 +10,20 @@
         {
           "sym": "MSFT",
           "name": "Microsoft",
-          "price": null,
-          "dp": null
+          "price": 386.74,
+          "dp": -0.96
         },
         {
           "sym": "GOOGL",
           "name": "Alphabet",
-          "price": null,
-          "dp": null
+          "price": 366.46,
+          "dp": 1.82
         },
         {
           "sym": "META",
           "name": "Meta",
-          "price": null,
-          "dp": null
+          "price": 600.29,
+          "dp": 2.98
         }
       ]
     },
@@ -35,26 +35,26 @@
         {
           "sym": "NVDA",
           "name": "Nvidia",
-          "price": null,
-          "dp": null
+          "price": 195.55,
+          "dp": 0.37
         },
         {
           "sym": "AMD",
           "name": "AMD",
-          "price": null,
-          "dp": null
+          "price": 552.05,
+          "dp": 6.61
         },
         {
           "sym": "AVGO",
           "name": "Broadcom",
-          "price": null,
-          "dp": null
+          "price": 373.9,
+          "dp": 3.73
         },
         {
           "sym": "TSM",
           "name": "TSMC",
-          "price": null,
-          "dp": null
+          "price": 451.79,
+          "dp": 4.06
         }
       ]
     },
@@ -66,8 +66,8 @@
         {
           "sym": "MU",
           "name": "Micron",
-          "price": null,
-          "dp": null
+          "price": 984.75,
+          "dp": 0.94
         }
       ]
     },
@@ -79,20 +79,20 @@
         {
           "sym": "ASML",
           "name": "ASML",
-          "price": null,
-          "dp": null
+          "price": 1825.07,
+          "dp": 3.15
         },
         {
           "sym": "AMAT",
           "name": "Applied Materials",
-          "price": null,
-          "dp": null
+          "price": 592.79,
+          "dp": -1.7
         },
         {
           "sym": "LRCX",
           "name": "Lam Research",
-          "price": null,
-          "dp": null
+          "price": 350.2,
+          "dp": -0.34
         }
       ]
     },
@@ -104,26 +104,26 @@
         {
           "sym": "VRT",
           "name": "Vertiv",
-          "price": null,
-          "dp": null
+          "price": 318.47,
+          "dp": 5.97
         },
         {
           "sym": "ETN",
           "name": "Eaton",
-          "price": null,
-          "dp": null
+          "price": 413.42,
+          "dp": 3.74
         },
         {
           "sym": "GEV",
           "name": "GE Vernova",
-          "price": null,
-          "dp": null
+          "price": 1152.04,
+          "dp": 3.5
         },
         {
           "sym": "TT",
           "name": "Trane",
-          "price": null,
-          "dp": null
+          "price": 487.24,
+          "dp": 1.91
         }
       ]
     },
@@ -135,20 +135,20 @@
         {
           "sym": "CEG",
           "name": "Constellation",
-          "price": null,
-          "dp": null
+          "price": 245.87,
+          "dp": 2.77
         },
         {
           "sym": "VST",
           "name": "Vistra",
-          "price": null,
-          "dp": null
+          "price": 157.22,
+          "dp": 4.08
         },
         {
           "sym": "PWR",
           "name": "Quanta Services",
-          "price": null,
-          "dp": null
+          "price": 674.04,
+          "dp": 0.86
         }
       ]
     },
@@ -160,28 +160,29 @@
         {
           "sym": "FCX",
           "name": "Freeport-McMoRan",
-          "price": null,
-          "dp": null
+          "price": 61.0,
+          "dp": 0.05
         },
         {
           "sym": "SCCO",
           "name": "Southern Copper",
-          "price": null,
-          "dp": null
+          "price": 173.87,
+          "dp": 1.08
         },
         {
           "sym": "AA",
           "name": "Alcoa",
-          "price": null,
-          "dp": null
+          "price": 49.87,
+          "dp": 2.44
         },
         {
           "sym": "STRL",
           "name": "Sterling Infra",
-          "price": null,
-          "dp": null
+          "price": 717.11,
+          "dp": 2.33
         }
       ]
     }
-  ]
+  ],
+  "note": "Live: Finnhub quotes (22 tickers). ~15-min delayed."
 }

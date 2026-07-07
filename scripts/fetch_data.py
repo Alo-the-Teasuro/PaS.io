@@ -8,18 +8,6 @@ them as static JSON into data/ for the front end to read.
   - EIA      -> electricity.json   (national trend + per-state prices)
   - FRED     -> commodities.json   (copper + aluminum monthly series)  [no key needed]
   - Finnhub  -> stocks.json        (quote per ticker, grouped by tier)
-
-API KEYS ARE READ FROM ENVIRONMENT VARIABLES ONLY. Never hardcode a key in
-this file. In GitHub they come from repo Secrets; locally, export them in your
-shell before running:
-
-    export EIA_API_KEY=xxxx
-    export FINNHUB_API_KEY=xxxx
-    python scripts/fetch_data.py
-
-Design rule (see CLAUDE.md): each source is isolated in try/except so one
-failing feed never blocks the others. A failed source keeps its previous data
-and is simply marked not-live for that run.
 """
 
 import json
@@ -51,16 +39,28 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def get_json(url, timeout=45):
-    req = urllib.request.Request(url, headers={"User-Agent": "PaS.io/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8"))
+def _fetch(url, timeout=30, retries=3):
+    # Retry transient failures (timeouts, resets, brief 5xx) before giving up.
+    last = None
+    for attempt in range(1, retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "PaS.io/1.0"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read().decode("utf-8")
+        except Exception as e:
+            last = e
+            print(f"    attempt {attempt}/{retries} failed: {e}")
+            if attempt < retries:
+                time.sleep(2 * attempt)
+    raise last
 
 
-def get_text(url, timeout=45):
-    req = urllib.request.Request(url, headers={"User-Agent": "PaS.io/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read().decode("utf-8")
+def get_json(url, timeout=30, retries=3):
+    return json.loads(_fetch(url, timeout, retries))
+
+
+def get_text(url, timeout=30, retries=3):
+    return _fetch(url, timeout, retries)
 
 
 def load(name):
@@ -195,7 +195,8 @@ def run(name, fn):
         save(name, data)
         print(f"[{name}] OK")
         return True
-    except (urllib.error.URLError, urllib.error.HTTPError, RuntimeError, KeyError, ValueError) as e:
+    except Exception as e:
+        # Any failure in one source must never crash the others — keep prior data.
         print(f"[{name}] FAILED, keeping previous data: {e}")
         return False
 

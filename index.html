@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Picks &amp; Shovels — AI Infrastructure Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<style>
+:root{
+  --ink:#0e1116; --surface:#151a21; --card:#1b212b; --raised:#212936;
+  --line:#2a313c; --line-2:#39424f;
+  --tx:#e8e6e0; --tx-2:#9ba3ae; --tx-mut:#626b78;
+  --copper:#cf7d47; --copper-hi:#e69158; --copper-deep:#7a4a28;
+  --volt:#4c9be8; --volt-hi:#77b6ff;
+  --up:#5ec27f; --down:#e26461;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --disp:'Space Grotesk',system-ui,sans-serif;
+  --body:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:var(--tx);font-family:var(--body);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--volt);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3{font-family:var(--disp);font-weight:600;letter-spacing:-.01em;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--tx-mut)}
+
+/* ---- status bar ---- */
+.status{position:sticky;top:0;z-index:20;background:rgba(14,17,22,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px}
+.status .wrap{display:flex;align-items:center;gap:18px;height:44px;flex-wrap:wrap}
+.brand{color:var(--tx);letter-spacing:.14em;font-weight:600;text-transform:uppercase}
+.brand b{color:var(--copper);font-weight:600}
+.status .feeds{margin-left:auto;display:flex;gap:14px;color:var(--tx-2)}
+.feed{display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--tx-mut);flex:none}
+.dot.live{background:var(--up);box-shadow:0 0 8px rgba(94,194,127,.6)}
+.dot.seed{background:var(--copper)}
+#asof{color:var(--tx-mut)}
+
+/* ---- hero / signature stack ---- */
+.hero{padding:72px 0 40px;position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(34px,5vw,58px);line-height:1.02;font-weight:700}
+.hero h1 em{font-style:normal;color:var(--copper)}
+.hero p.lede{color:var(--tx-2);font-size:18px;max-width:42ch;margin:22px 0 0}
+.hero .meta{margin-top:26px;display:flex;gap:26px;font-family:var(--mono);font-size:13px;color:var(--tx-2)}
+.hero .meta b{display:block;color:var(--tx);font-size:22px;font-weight:600}
+.hero .meta .copper{color:var(--copper)}
+.hero .meta .volt{color:var(--volt)}
+
+/* strata */
+.strata{display:flex;flex-direction:column;gap:4px}
+.stratum{position:relative;border:1px solid var(--line);border-left:3px solid var(--copper-deep);
+  border-radius:6px;background:var(--surface);padding:0 16px;display:flex;align-items:center;
+  justify-content:space-between;cursor:pointer;transition:transform .18s,border-color .18s,background .18s;
+  overflow:hidden}
+.stratum:hover{transform:translateX(4px);border-color:var(--line-2);background:var(--card)}
+.stratum .s-name{font-family:var(--disp);font-weight:500;font-size:15px}
+.stratum .s-tag{font-family:var(--mono);font-size:11px;color:var(--tx-mut);text-align:right;max-width:46%}
+.stratum .depth{font-family:var(--mono);font-size:11px;color:var(--tx-mut);margin-right:12px}
+@media (prefers-reduced-motion:no-preference){
+  .stratum{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}
+}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ---- sections ---- */
+section.block{padding:56px 0;border-top:1px solid var(--line)}
+.head{margin-bottom:32px}
+.head h2{font-size:clamp(24px,3vw,34px);margin-top:10px}
+.head p{color:var(--tx-2);max-width:64ch;margin:12px 0 0}
+
+/* tiers */
+.tier{border:1px solid var(--line);border-radius:10px;background:var(--surface);
+  padding:18px 20px;margin-bottom:12px}
+.tier .t-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tier h3{font-size:18px}
+.tier .why{color:var(--tx-2);font-size:14px;font-family:var(--mono)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:7px;
+  padding:7px 11px;background:var(--card);display:flex;align-items:center;gap:10px;min-width:118px}
+.chip .sym{font-weight:600;color:var(--tx)}
+.chip .px{margin-left:auto;color:var(--tx-2)}
+.chip .dp.up{color:var(--up)} .chip .dp.down{color:var(--down)}
+.chip .dp{font-size:12px}
+.chip .pending{color:var(--tx-mut);font-size:11px}
+
+/* power grid + charts */
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:20px}
+.panel h3{font-size:15px;font-family:var(--mono);font-weight:500;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--tx-2);margin-bottom:16px}
+.heat{display:grid;grid-template-columns:repeat(11,1fr);gap:3px}
+.cell{aspect-ratio:1;border-radius:4px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-family:var(--mono);line-height:1.05;cursor:default}
+.cell .ab{font-size:10px;font-weight:600}
+.cell .v{font-size:8px;opacity:.85}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;font-family:var(--mono);
+  font-size:11px;color:var(--tx-2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.stat-row{display:flex;gap:22px;margin-top:18px;flex-wrap:wrap}
+.stat{font-family:var(--mono)}
+.stat b{display:block;font-size:22px;color:var(--tx);font-weight:600}
+.stat span{font-size:11px;color:var(--tx-mut);text-transform:uppercase;letter-spacing:.1em}
+canvas{max-width:100%}
+
+/* metals */
+.metals{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:820px){.metals{grid-template-columns:1fr}}
+.metal-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.metal-hd .now{font-family:var(--mono);font-size:20px;font-weight:600}
+.metal-hd .now.copper{color:var(--copper)} .metal-hd .now.alu{color:var(--volt)}
+.note{border-left:3px solid var(--copper-deep);background:var(--surface);padding:16px 18px;
+  border-radius:0 8px 8px 0;color:var(--tx-2);font-size:14px;margin-top:26px}
+
+/* geographic heat map */
+#usmap svg{display:block}
+#usmap path{transition:opacity .15s}
+
+/* chip cross-section */
+.stack-col .layer{display:flex;justify-content:space-between;align-items:center;gap:16px;
+  border:1px solid var(--line);border-left:3px solid var(--line-2);border-radius:6px;
+  padding:10px 14px;margin-bottom:6px;font-size:14px;background:var(--surface);
+  transition:transform .15s,border-color .15s}
+.stack-col .layer:hover{transform:translateX(4px);border-color:var(--line-2)}
+.layer .lm{font-family:var(--mono);font-size:12px;color:var(--tx-2);text-align:right}
+.layer.th{border-left-color:#e0a34f;background:rgba(224,163,79,.07)}
+.layer.cu{border-left-color:var(--copper);background:rgba(207,125,71,.08)}
+.layer.si{border-left-color:var(--volt);background:rgba(76,155,232,.07)}
+.die{border:1px dashed var(--line-2);border-radius:8px;padding:12px 10px 6px;margin:6px 0;position:relative}
+.die .dlab{position:absolute;top:-9px;left:12px;background:var(--ink);padding:0 8px;
+  font-family:var(--mono);font-size:11px;color:var(--tx-mut);letter-spacing:.12em}
+.hbm-tag{font-family:var(--mono);font-size:11px;color:var(--volt-hi);border:1px solid var(--line-2);
+  border-radius:5px;padding:2px 7px;white-space:nowrap}
+.why-panel .wp{border-top:1px solid var(--line);padding:14px 0}
+.why-panel .wp:first-child{border-top:none;padding-top:0}
+.why-panel .wp b{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--copper);display:block;margin-bottom:6px;font-weight:500}
+.why-panel .wp p{margin:0;color:var(--tx-2);font-size:14px}
+
+footer{border-top:1px solid var(--line);padding:40px 0 64px;color:var(--tx-mut);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer .mono{font-family:var(--mono)}
+.disc{max-width:52ch;line-height:1.6}
+
+@media(max-width:760px){.hero .wrap{grid-template-columns:1fr;gap:32px}}
+</style>
+</head>
+<body>
+
+<div class="status">
+  <div class="wrap">
+    <span class="brand">Picks&nbsp;<b>&amp;</b>&nbsp;Shovels</span>
+    <span id="asof">// loading feeds…</span>
+    <div class="feeds" id="feeds"></div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">AI infrastructure index</span>
+      <h1>The value is in the <em>layers below.</em></h1>
+      <p class="lede">Everyone watches the models. The durable money flows into what they run on —
+        silicon, memory, power, and the metal that carries it. This tracks that stack.</p>
+      <div class="meta">
+        <div><b class="copper">~27&nbsp;t</b>copper&nbsp;/&nbsp;MW</div>
+        <div><b class="volt">+7.4%</b>US&nbsp;power&nbsp;YoY</div>
+        <div><b>$1.15T</b>hyperscaler&nbsp;capex</div>
+      </div>
+    </div>
+    <div class="strata" id="strata"></div>
+  </div>
+</header>
+
+<section class="block" id="stack">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">01 — The stack</span>
+      <h2>Seven layers, top to bedrock</h2>
+      <p>Each layer sells into the one above it. The lower you go, the more platform-agnostic the
+        revenue — a data center needs power and copper no matter which model wins. Live quotes are
+        ~15-minute delayed from Finnhub.</p>
+    </div>
+    <div id="tiers"></div>
+  </div>
+</section>
+
+<section class="block" id="power">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">02 — Power</span>
+      <h2>Where the electrons are cheap</h2>
+      <p>Data centers chase cheap, uncongested power. But the buildout now feeds back into prices —
+        the states with the fastest-rising rates are the ones where AI load is arriving first.</p>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Residential price by state — ¢/kWh</h3>
+        <div id="usmap"></div>
+        <div class="heat" id="heat" style="display:none"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="panel">
+        <h3>US average — ¢/kWh</h3>
+        <canvas id="elecChart" height="200"></canvas>
+        <div class="stat-row" id="elecStats"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="metals">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">03 — Metals</span>
+      <h2>The tonnage bottleneck</h2>
+      <p>Volume metals move on the buildout itself — wiring, busbars, heat sinks. These have liquid,
+        chartable prices. The in-chip metals (gallium, hafnium, tungsten) are chokepoints, not trades:
+        tiny tonnage, extreme supply concentration.</p>
+    </div>
+    <div class="metals">
+      <div class="panel">
+        <div class="metal-hd"><h3 style="margin:0;text-transform:none;font-family:var(--disp);font-size:17px;color:var(--tx)">Copper</h3>
+          <span class="now copper" id="copperNow">—</span></div>
+        <canvas id="copperChart" height="170"></canvas>
+      </div>
+      <div class="panel">
+        <div class="metal-hd"><h3 style="margin:0;text-transform:none;font-family:var(--disp);font-size:17px;color:var(--tx)">Aluminum</h3>
+          <span class="now alu" id="aluNow">—</span></div>
+        <canvas id="aluChart" height="170"></canvas>
+      </div>
+    </div>
+    <div class="note">Chokepoint materials behave as geopolitical risk indicators rather than price
+      trades — gallium and germanium under export controls, hafnium a nuclear byproduct, helium spot
+      prices doubled after 2026 supply shocks. Exposure shows up in chipmaker margins and component
+      lead times, not a clean ticker.</div>
+  </div>
+</section>
+
+<section class="block" id="silicon">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">04 — Silicon</span>
+      <h2>Inside the package</h2>
+      <p>Top to bottom through an AI accelerator: the thermal path, the die itself, and the packaging
+        that makes it an AI chip. Warm layers move heat, copper layers move current, blue layers are
+        the silicon doing the thinking.</p>
+    </div>
+    <div class="grid2">
+      <div class="stack-col">
+        <div class="layer th"><span>Cooler &amp; heat pipes</span><span class="lm">aluminum · copper</span></div>
+        <div class="layer th"><span>Thermal interface</span><span class="lm">indium</span></div>
+        <div class="layer th"><span>Heat spreader</span><span class="lm">nickel-plated copper</span></div>
+        <div class="die">
+          <span class="dlab">GPU DIE</span>
+          <div class="layer cu"><span>Bond pads</span><span class="lm">aluminum</span></div>
+          <div class="layer cu"><span>Wiring — 10–15 layers</span><span class="lm">copper · tantalum · ruthenium</span></div>
+          <div class="layer cu"><span>Contacts</span><span class="lm">tungsten · cobalt</span></div>
+          <div class="layer si"><span>Transistors</span><span class="lm">silicon · hafnium oxide · SiGe</span></div>
+        </div>
+        <div class="layer cu"><span>Microbumps</span><span class="lm">tin-silver-copper</span></div>
+        <div class="layer si"><span>Interposer (CoWoS) <span class="hbm-tag">+ HBM stacks — Cu TSVs</span></span><span class="lm">silicon · copper</span></div>
+        <div class="layer cu"><span>Package substrate</span><span class="lm">copper · gold pads</span></div>
+        <div class="layer cu"><span>Board &amp; power delivery</span><span class="lm">copper · GaN</span></div>
+      </div>
+      <div class="panel why-panel">
+        <div class="wp"><b>Grams, not tons</b>
+          <p>The metal inside a die is measured in grams — chips alone don't move copper markets.
+             The tonnage lives in the racks, wiring, and cooling wrapped around them.</p></div>
+        <div class="wp"><b>Packaging is the AI part</b>
+          <p>What separates an AI accelerator from a normal chip is everything below the die:
+             the CoWoS interposer, HBM stacks, and power delivery. Packaging, not transistors,
+             became the bottleneck.</p></div>
+        <div class="wp"><b>Chokepoints, not trades</b>
+          <p>Gallium, hafnium, tungsten, helium: trivial tonnage, extreme supply concentration.
+             They show up as risk in margins and lead times — not as a clean ticker.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="mono">
+      SOURCES — EIA (electricity) · FRED (metals) · Finnhub (equities)<br>
+      <span id="genline" style="color:var(--tx-mut)"></span>
+    </div>
+    <p class="disc">Informational only. This is not investment advice and not a recommendation to buy
+      or sell any security. Data may be delayed or incomplete. Do your own research.</p>
+  </div>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * PaS.io front end
+ * Reads ./data/*.json when deployed (GitHub Pages, same origin).
+ * If those files aren't reachable (e.g. opened as a standalone preview),
+ * it falls back to the SEED constant below so the page still renders.
+ * ------------------------------------------------------------------ */
+
+const SEED = {
+  electricity:{national:{units:"cents/kWh",series:[["2022",15.04],["2023",16.00],["2024",16.48],["2025",17.30],["2026",18.83]]},
+    states:{"AL":17.41,"AK":27.35,"AZ":15.48,"AR":14.16,"CA":35.25,"CO":16.54,"CT":32.24,"DE":18.79,"DC":25.41,"FL":15.38,"GA":15.37,"HI":46.62,"ID":12.70,"IL":20.47,"IN":17.90,"IA":13.86,"KS":15.78,"KY":15.02,"LA":14.44,"ME":28.42,"MD":22.07,"MA":29.45,"MI":21.39,"MN":16.39,"MS":16.76,"MO":14.01,"MT":13.90,"NE":13.28,"NV":14.29,"NH":27.24,"NJ":23.53,"NM":15.15,"NY":29.45,"NC":16.25,"ND":12.35,"OH":19.49,"OK":13.31,"OR":15.78,"PA":21.47,"RI":28.30,"SC":17.06,"SD":14.52,"TN":14.94,"TX":16.99,"UT":13.29,"VT":24.56,"VA":17.38,"WA":14.36,"WV":16.06,"WI":19.21,"WY":14.68}},
+  commodities:{copper:{units:"USD/lb",series:[["2025-01",4.05],["2025-03",4.22],["2025-05",4.48],["2025-07",4.61],["2025-09",4.90],["2025-11",5.32],["2026-01",6.00],["2026-03",5.78],["2026-05",5.65],["2026-07",5.61]]},
+    aluminum:{units:"USD/t",series:[["2025-01",2560],["2025-03",2640],["2025-05",2705],["2025-07",2770],["2025-09",2905],["2025-11",3120],["2026-01",3300],["2026-03",3480],["2026-05",3544],["2026-07",3505]]}},
+  stocks:{tiers:[
+    {name:"Models & apps",why:"The visible layer — winner-take-most risk",tickers:[{sym:"MSFT"},{sym:"GOOGL"},{sym:"META"}]},
+    {name:"Compute & accelerators",why:"Sells the shovels outright",tickers:[{sym:"NVDA"},{sym:"AMD"},{sym:"AVGO"},{sym:"TSM"}]},
+    {name:"Memory (HBM)",why:"2026 supply already sold out",tickers:[{sym:"MU"}]},
+    {name:"Fab equipment",why:"Every fab buys the tools",tickers:[{sym:"ASML"},{sym:"AMAT"},{sym:"LRCX"}]},
+    {name:"Power & cooling",why:"Racks need megawatts and chillers",tickers:[{sym:"VRT"},{sym:"ETN"},{sym:"GEV"},{sym:"TT"}]},
+    {name:"Grid & generation",why:"Electrons are the bottleneck",tickers:[{sym:"CEG"},{sym:"VST"},{sym:"PWR"}]},
+    {name:"Materials & build",why:"~27 tons of copper per MW",tickers:[{sym:"FCX"},{sym:"SCCO"},{sym:"AA"},{sym:"STRL"}]}
+  ]},
+  meta:{generated_at:null,live:{electricity:false,commodities:false,stocks:false}}
+};
+
+const GRID={ // state -> [row, col] in an 11-col tile map
+ AK:[0,0],ME:[0,10], WI:[1,6],VT:[1,9],NH:[1,10],
+ WA:[2,0],ID:[2,1],MT:[2,2],ND:[2,3],MN:[2,4],IL:[2,5],MI:[2,6],NY:[2,8],MA:[2,9],
+ OR:[3,0],NV:[3,1],WY:[3,2],SD:[3,3],IA:[3,4],IN:[3,5],OH:[3,6],PA:[3,7],NJ:[3,8],CT:[3,9],RI:[3,10],
+ CA:[4,0],UT:[4,1],CO:[4,2],NE:[4,3],MO:[4,4],KY:[4,5],WV:[4,6],VA:[4,7],MD:[4,8],DE:[4,9],
+ AZ:[5,1],NM:[5,2],KS:[5,3],AR:[5,4],TN:[5,5],NC:[5,6],SC:[5,7],DC:[5,8],
+ OK:[6,3],LA:[6,4],MS:[6,5],AL:[6,6],GA:[6,7],
+ HI:[7,0],TX:[7,3],FL:[7,8]
+};
+const BUCKETS=[
+ {max:14,bg:"#10395c",tx:"#8cc3ff",lab:"<14"},
+ {max:16,bg:"#1c5570",tx:"#a9dbe8",lab:"14–16"},
+ {max:18,bg:"#4a4f57",tx:"#cfd4dc",lab:"16–18"},
+ {max:21,bg:"#6e4a2e",tx:"#e8b98f",lab:"18–21"},
+ {max:25,bg:"#8a4a26",tx:"#f2c39a",lab:"21–25"},
+ {max:30,bg:"#a5432a",tx:"#f6b59a",lab:"25–30"},
+ {max:999,bg:"#b83b30",tx:"#f7bcb2",lab:"≥30"}
+];
+const bucket=v=>BUCKETS.find(b=>v<b.max);
+
+async function grab(name){
+  try{const r=await fetch("./data/"+name+".json",{cache:"no-store"});
+    if(!r.ok)throw 0; return await r.json();}catch(e){return null;}
+}
+
+async function boot(){
+  const [el,co,st,mt]=await Promise.all([grab("electricity"),grab("commodities"),grab("stocks"),grab("meta")]);
+  const D={
+    electricity: el||SEED.electricity,
+    commodities: co||SEED.commodities,
+    stocks: st||SEED.stocks,
+    meta: mt||SEED.meta
+  };
+  renderStatus(D.meta,{el:!!el,co:!!co,st:!!st});
+  renderStrata(D.stocks);
+  renderTiers(D.stocks);
+  renderHeat(D.electricity);
+  renderElec(D.electricity);
+  renderMetals(D.commodities);
+}
+
+function renderStatus(meta,got){
+  const feeds=document.getElementById("feeds");
+  const live=meta.live||{};
+  const rows=[["EIA","electricity",got.el],["FRED","commodities",got.co],["FINNHUB","stocks",got.st]];
+  feeds.innerHTML=rows.map(([lab,key,fetched])=>{
+    const isLive=fetched&&live[key];
+    const cls=isLive?"live":(fetched?"seed":"seed");
+    const state=isLive?"live":"seed";
+    return `<span class="feed"><span class="dot ${cls}"></span>${lab} ${state}</span>`;
+  }).join("");
+  const asof=document.getElementById("asof");
+  if(meta.generated_at){
+    const d=new Date(meta.generated_at);
+    asof.textContent="// data as of "+d.toISOString().slice(0,16).replace("T"," ")+" UTC";
+    document.getElementById("genline").textContent="Last pipeline run: "+d.toUTCString();
+  }else{
+    asof.textContent="// preview — seed data (deploy to load live feeds)";
+    document.getElementById("genline").textContent="Preview mode — showing seed data.";
+  }
+}
+
+function renderStrata(stocks){
+  const box=document.getElementById("strata");
+  const n=stocks.tiers.length;
+  box.innerHTML=stocks.tiers.map((t,i)=>{
+    const h=42+i*9;                        // thickens toward bedrock
+    const mix=i/(n-1);
+    const bg=`color-mix(in srgb, var(--surface) ${100-mix*55}%, var(--copper-deep) ${mix*55}%)`;
+    const bl=`color-mix(in srgb, var(--copper-deep) ${100-mix*100}%, var(--copper) ${mix*100}%)`;
+    return `<div class="stratum" style="height:${h}px;animation-delay:${i*60}ms;background:${bg};border-left-color:${bl}"
+                 onclick="document.getElementById('stack').scrollIntoView()">
+      <span class="depth">L${i}</span>
+      <span class="s-name">${t.name}</span>
+      <span class="s-tag">${t.why}</span></div>`;
+  }).join("");
+}
+
+function fmtPx(p){return p==null?null:"$"+Number(p).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function renderTiers(stocks){
+  const box=document.getElementById("tiers");
+  box.innerHTML=stocks.tiers.map((t,i)=>{
+    const chips=t.tickers.map(tk=>{
+      const px=fmtPx(tk.price);
+      const dp=tk.dp;
+      let right;
+      if(px==null){right=`<span class="pending">live feed</span>`;}
+      else{
+        const cls=dp>0?"up":dp<0?"down":"";
+        const sign=dp>0?"+":"";
+        right=`<span class="px">${px}</span>${dp!=null?`<span class="dp ${cls}">${sign}${dp}%</span>`:""}`;
+      }
+      return `<span class="chip"><span class="sym">${tk.sym}</span>${right}</span>`;
+    }).join("");
+    return `<div class="tier">
+      <div class="t-top"><h3>L${i} · ${t.name}</h3><span class="why">${t.why}</span></div>
+      <div class="chips">${chips}</div></div>`;
+  }).join("");
+}
+
+const NAMES={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","District of Columbia":"DC","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY"};
+
+async function renderHeat(elec){
+  let drew=false;
+  try{drew=await drawMap(elec);}catch(e){drew=false;}
+  if(!drew){
+    document.getElementById("usmap").style.display="none";
+    const heat=document.getElementById("heat");
+    heat.style.display="grid";
+    renderTiles(elec,heat);
+  }
+  document.getElementById("legend").innerHTML=BUCKETS.map(b=>
+    `<span><i style="background:${b.bg}"></i>${b.lab}</span>`).join("");
+}
+
+async function drawMap(elec){
+  if(!(window.d3&&window.topojson))return false;
+  const urls=[
+    "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json",
+    "https://unpkg.com/us-atlas@3/states-10m.json"
+  ];
+  let us=null;
+  for(const u of urls){
+    try{const r=await fetch(u);if(r.ok){us=await r.json();break;}}catch(e){}
+  }
+  if(!us)return false;
+  const svg=d3.select("#usmap").append("svg")
+    .attr("viewBox","0 0 975 610").attr("width","100%")
+    .attr("role","img").attr("aria-label","US residential electricity price by state");
+  const path=d3.geoPath(d3.geoAlbersUsa().scale(1300).translate([487.5,305]));
+  svg.selectAll("path")
+    .data(topojson.feature(us,us.objects.states).features)
+    .join("path")
+    .attr("d",path)
+    .attr("fill",d=>{const ab=NAMES[d.properties.name];const v=ab?elec.states[ab]:null;
+      return v==null?"#242b35":bucket(v).bg;})
+    .attr("stroke","#0e1116").attr("stroke-width",1)
+    .on("mouseenter",function(){d3.select(this).attr("stroke","#e8e6e0").attr("stroke-width",1.5).raise();})
+    .on("mouseleave",function(){d3.select(this).attr("stroke","#0e1116").attr("stroke-width",1);})
+    .append("title").text(d=>{const ab=NAMES[d.properties.name];const v=ab?elec.states[ab]:null;
+      return v==null?d.properties.name:`${d.properties.name} — ${v}¢/kWh`;});
+  return true;
+}
+
+function renderTiles(elec,heat){
+  heat.innerHTML="";
+  Object.entries(GRID).forEach(([ab,[r,c]])=>{
+    const v=elec.states[ab];
+    const b=bucket(v);
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.style.gridRow=(r+1); cell.style.gridColumn=(c+1);
+    cell.style.background=b.bg; cell.style.color=b.tx;
+    cell.title=`${ab} — ${v}¢/kWh`;
+    cell.innerHTML=`<span class="ab">${ab}</span><span class="v">${v}</span>`;
+    heat.appendChild(cell);
+  });
+}
+
+const chartBase=(mono)=>({
+  responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{titleFont:{family:mono},bodyFont:{family:mono}}},
+  scales:{
+    x:{grid:{color:"#232a34"},ticks:{color:"#626b78",font:{family:mono,size:10},maxRotation:0,autoSkip:true,maxTicksLimit:6}},
+    y:{grid:{color:"#232a34"},ticks:{color:"#626b78",font:{family:mono,size:10}}}
+  }
+});
+const MONO="'IBM Plex Mono',monospace";
+
+function line(id,labels,data,color){
+  new Chart(document.getElementById(id),{type:"line",
+    data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+"22",
+      borderWidth:2,fill:true,tension:.3,pointRadius:0,pointHoverRadius:4}]},
+    options:chartBase(MONO)});
+}
+
+function renderElec(elec){
+  const s=elec.national.series;
+  line("elecChart",s.map(x=>x[0]),s.map(x=>x[1]),"#4c9be8");
+  const first=s[0][1],last=s[s.length-1][1];
+  const chg=(((last-first)/first)*100).toFixed(0);
+  document.getElementById("elecStats").innerHTML=
+    `<div class="stat"><b>${last.toFixed(2)}¢</b><span>now</span></div>
+     <div class="stat"><b style="color:var(--copper)">+${chg}%</b><span>since ${s[0][0]}</span></div>`;
+}
+
+function renderMetals(com){
+  const cp=com.copper.series, al=com.aluminum.series;
+  line("copperChart",cp.map(x=>x[0].slice(2)),cp.map(x=>x[1]),"#cf7d47");
+  line("aluChart",al.map(x=>x[0].slice(2)),al.map(x=>x[1]),"#4c9be8");
+  const cnow=cp[cp.length-1][1], anow=al[al.length-1][1];
+  document.getElementById("copperNow").textContent="$"+cnow.toFixed(2)+"/lb";
+  document.getElementById("aluNow").textContent="$"+Math.round(anow).toLocaleString()+"/t";
+}
+
+boot();
+</script>
+</body>
+</html>

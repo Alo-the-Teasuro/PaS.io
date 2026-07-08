@@ -115,13 +115,23 @@ section.block{padding:56px 0;border-top:1px solid var(--line)}
 canvas{max-width:100%}
 .chart-box{position:relative;height:200px}
 .chart-box.sm{height:170px}
+.chart-box.xs{height:130px}
 
 /* metals */
 .metals{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 @media(max-width:820px){.metals{grid-template-columns:1fr}}
 .metal-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.metal-hd h3{margin:0;text-transform:none;font-family:var(--disp);font-size:17px;color:var(--tx)}
 .metal-hd .now{font-family:var(--mono);font-size:20px;font-weight:600}
 .metal-hd .now.copper{color:var(--copper)} .metal-hd .now.alu{color:var(--volt)}
+.metal-hd .now.tin{color:#aeb9c6} .metal-hd .now.nickel{color:#d0a95c}
+.metal-hd .now.zinc{color:#7f9bbf} .metal-hd .now.uranium{color:#7cc36a}
+.metal-why{font-family:var(--mono);font-size:10px;color:var(--tx-mut);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.metals-sub{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:24px}
+.metals-sub .metal-hd h3{font-size:15px}
+.metals-sub .metal-hd .now{font-size:15px}
+@media(max-width:1080px){.metals-sub{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.metals-sub{grid-template-columns:1fr}}
 .note{border-left:3px solid var(--copper-deep);background:var(--surface);padding:16px 18px;
   border-radius:0 8px 8px 0;color:var(--tx-2);font-size:14px;margin-top:26px}
 
@@ -233,14 +243,36 @@ footer .mono{font-family:var(--mono)}
     </div>
     <div class="metals">
       <div class="panel">
-        <div class="metal-hd"><h3 style="margin:0;text-transform:none;font-family:var(--disp);font-size:17px;color:var(--tx)">Copper</h3>
+        <div class="metal-hd"><h3>Copper</h3>
           <span class="now copper" id="copperNow">—</span></div>
         <div class="chart-box sm"><canvas id="copperChart"></canvas></div>
       </div>
       <div class="panel">
-        <div class="metal-hd"><h3 style="margin:0;text-transform:none;font-family:var(--disp);font-size:17px;color:var(--tx)">Aluminum</h3>
+        <div class="metal-hd"><h3>Aluminum</h3>
           <span class="now alu" id="aluNow">—</span></div>
         <div class="chart-box sm"><canvas id="aluChart"></canvas></div>
+      </div>
+    </div>
+    <div class="metals-sub">
+      <div class="panel">
+        <div class="metal-hd"><h3>Tin</h3><span class="now tin" id="tinNow">—</span></div>
+        <div class="metal-why">Solder — every board shipped</div>
+        <div class="chart-box xs"><canvas id="tinChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="metal-hd"><h3>Nickel</h3><span class="now nickel" id="nickelNow">—</span></div>
+        <div class="metal-why">Turbine superalloys</div>
+        <div class="chart-box xs"><canvas id="nickelChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="metal-hd"><h3>Zinc</h3><span class="now zinc" id="zincNow">—</span></div>
+        <div class="metal-why">Galvanized grid steel</div>
+        <div class="chart-box xs"><canvas id="zincChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="metal-hd"><h3>Uranium</h3><span class="now uranium" id="uraniumNow">—</span></div>
+        <div class="metal-why">Nuclear for data centers</div>
+        <div class="chart-box xs"><canvas id="uraniumChart"></canvas></div>
       </div>
     </div>
     <div class="note">Chokepoint materials behave as geopolitical risk indicators rather than price
@@ -315,7 +347,11 @@ const SEED = {
   electricity:{national:{units:"cents/kWh",series:[["2022",15.04],["2023",16.00],["2024",16.48],["2025",17.30],["2026",18.83]]},
     states:{"AL":17.41,"AK":27.35,"AZ":15.48,"AR":14.16,"CA":35.25,"CO":16.54,"CT":32.24,"DE":18.79,"DC":25.41,"FL":15.38,"GA":15.37,"HI":46.62,"ID":12.70,"IL":20.47,"IN":17.90,"IA":13.86,"KS":15.78,"KY":15.02,"LA":14.44,"ME":28.42,"MD":22.07,"MA":29.45,"MI":21.39,"MN":16.39,"MS":16.76,"MO":14.01,"MT":13.90,"NE":13.28,"NV":14.29,"NH":27.24,"NJ":23.53,"NM":15.15,"NY":29.45,"NC":16.25,"ND":12.35,"OH":19.49,"OK":13.31,"OR":15.78,"PA":21.47,"RI":28.30,"SC":17.06,"SD":14.52,"TN":14.94,"TX":16.99,"UT":13.29,"VT":24.56,"VA":17.38,"WA":14.36,"WV":16.06,"WI":19.21,"WY":14.68}},
   commodities:{copper:{units:"USD/lb",series:[["2025-01",4.05],["2025-03",4.22],["2025-05",4.48],["2025-07",4.61],["2025-09",4.90],["2025-11",5.32],["2026-01",6.00],["2026-03",5.78],["2026-05",5.65],["2026-07",5.61]]},
-    aluminum:{units:"USD/t",series:[["2025-01",2560],["2025-03",2640],["2025-05",2705],["2025-07",2770],["2025-09",2905],["2025-11",3120],["2026-01",3300],["2026-03",3480],["2026-05",3544],["2026-07",3505]]}},
+    aluminum:{units:"USD/t",series:[["2025-01",2560],["2025-03",2640],["2025-05",2705],["2025-07",2770],["2025-09",2905],["2025-11",3120],["2026-01",3300],["2026-03",3480],["2026-05",3544],["2026-07",3505]]},
+    tin:{units:"USD/t",series:[["2025-01",29579],["2025-03",34180],["2025-05",31944],["2025-07",33610],["2025-09",34528],["2025-11",36963],["2026-01",49134],["2026-03",47324],["2026-05",52914]]},
+    nickel:{units:"USD/t",series:[["2025-01",15374],["2025-03",16048],["2025-05",15350],["2025-07",15034],["2025-09",15103],["2025-11",14671],["2026-01",17711],["2026-03",17076],["2026-05",18879]]},
+    zinc:{units:"USD/t",series:[["2025-01",2825],["2025-03",2887],["2025-05",2643],["2025-07",2763],["2025-09",2937],["2025-11",3177],["2026-01",3207],["2026-03",3182],["2026-05",3458]]},
+    uranium:{units:"USD/lb",series:[["2025-01",58.96],["2025-03",51.83],["2025-05",57.31],["2025-07",58.95],["2025-09",62.88],["2025-11",62.24],["2026-01",69.71],["2026-03",68.79],["2026-05",69.10]]}},
   stocks:{tiers:[
     {name:"Models & apps",why:"The visible layer — winner-take-most risk",tickers:[{sym:"MSFT"},{sym:"GOOGL"},{sym:"META"}]},
     {name:"Compute & accelerators",why:"Sells the shovels outright",tickers:[{sym:"NVDA"},{sym:"AMD"},{sym:"AVGO"},{sym:"TSM"}]},
@@ -515,13 +551,27 @@ function renderElec(elec){
      <div class="stat"><b style="color:var(--copper)">+${chg}%</b><span>since ${s[0][0]}</span></div>`;
 }
 
+// metal key -> [canvas id, "now" span id, line color]. Units come from the data.
+const METAL_VIEW={
+  copper:  ["copperChart","copperNow","#cf7d47"],
+  aluminum:["aluChart","aluNow","#4c9be8"],
+  tin:     ["tinChart","tinNow","#aeb9c6"],
+  nickel:  ["nickelChart","nickelNow","#d0a95c"],
+  zinc:    ["zincChart","zincNow","#7f9bbf"],
+  uranium: ["uraniumChart","uraniumNow","#7cc36a"]
+};
+function fmtMetal(v,units){
+  const usd=units==="USD/lb"?"$"+v.toFixed(2):"$"+Math.round(v).toLocaleString();
+  return usd+"/"+units.split("/")[1];
+}
 function renderMetals(com){
-  const cp=com.copper.series, al=com.aluminum.series;
-  line("copperChart",cp.map(x=>x[0].slice(2)),cp.map(x=>x[1]),"#cf7d47");
-  line("aluChart",al.map(x=>x[0].slice(2)),al.map(x=>x[1]),"#4c9be8");
-  const cnow=cp[cp.length-1][1], anow=al[al.length-1][1];
-  document.getElementById("copperNow").textContent="$"+cnow.toFixed(2)+"/lb";
-  document.getElementById("aluNow").textContent="$"+Math.round(anow).toLocaleString()+"/t";
+  for(const [key,[chartId,nowId,color]] of Object.entries(METAL_VIEW)){
+    const m=com[key];
+    if(!m||!m.series||!m.series.length) continue; // metal absent from feed — leave panel dash
+    const s=m.series;
+    line(chartId,s.map(x=>x[0].slice(2)),s.map(x=>x[1]),color);
+    document.getElementById(nowId).textContent=fmtMetal(s[s.length-1][1],m.units);
+  }
 }
 
 boot();

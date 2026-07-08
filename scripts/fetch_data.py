@@ -6,7 +6,7 @@ Runs on a schedule inside GitHub Actions. Pulls three public feeds and writes
 them as static JSON into data/ for the front end to read.
 
   - EIA      -> electricity.json   (national trend + per-state prices)
-  - FRED     -> commodities.json   (copper + aluminum monthly series)  [no key needed]
+  - FRED     -> commodities.json   (6 metals, monthly series)  [key optional, recommended]
   - Finnhub  -> stocks.json        (quote per ticker, grouped by tier)
 """
 
@@ -121,10 +121,33 @@ def fetch_eia(current):
     return current
 
 
-# ---------------------------------------------------------------- FRED (no key)
+# ---------------------------------------------------------------- FRED
 
-def fred_csv(series_id):
-    # Public CSV endpoint — no API key required.
+# Metal -> (FRED series id, display units, decimals, per-value transform).
+# All are IMF global prices, monthly. Copper converts tonne->lb for the
+# familiar "$/lb" framing; uranium is already quoted in USD/lb by the source.
+METALS = {
+    "copper":   ("PCOPPUSDM", "USD/lb", 2, lambda v: v / LB_PER_TONNE),
+    "aluminum": ("PALUMUSDM", "USD/t",  0, lambda v: v),
+    "tin":      ("PTINUSDM",  "USD/t",  0, lambda v: v),
+    "nickel":   ("PNICKUSDM", "USD/t",  0, lambda v: v),
+    "zinc":     ("PZINCUSDM", "USD/t",  0, lambda v: v),
+    "uranium":  ("PURANUSDM", "USD/lb", 2, lambda v: v),
+}
+
+
+def fred_series(series_id):
+    # Preferred: official API (needs free key; reliable from CI runners).
+    # Fallback: public fredgraph.csv (keyless, but Actions IPs get blocked).
+    if FRED_KEY:
+        url = (
+            "https://api.stlouisfed.org/fred/series/observations"
+            f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
+        )
+        obs = get_json(url)["observations"]
+        return [[o["date"][:7], float(o["value"])]
+                for o in obs if o["value"] not in (".", "")]
+
     txt = get_text(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}")
     out = []
     for line in txt.splitlines()[1:]:  # skip header
@@ -139,21 +162,25 @@ def fred_csv(series_id):
 
 
 def fetch_commodities(current):
-    # PCOPPUSDM / PALUMUSDM are global prices in USD per metric ton, monthly.
-    copper_t = fred_csv("PCOPPUSDM")[-36:]   # last ~3 years
-    alum_t = fred_csv("PALUMUSDM")[-36:]
-    if not copper_t or not alum_t:
-        raise RuntimeError("FRED returned no rows")
+    got = 0
+    for name, (sid, units, nd, xf) in METALS.items():
+        try:
+            rows = fred_series(sid)[-36:]  # last ~3 years
+            if not rows:
+                raise RuntimeError("no rows")
+            series = [[d, round(xf(v), nd)] for d, v in rows]
+            current[name] = {"units": units, "series": series}
+            got += 1
+        except Exception as e:
+            print(f"  ! {name} ({sid}) failed, keeping previous: {e}")
 
-    # Copper shown in USD/lb to match the familiar "$/lb" framing; aluminum in USD/tonne.
-    copper = [[d, round(v / LB_PER_TONNE, 2)] for d, v in copper_t]
-    alum = [[d, round(v, 0)] for d, v in alum_t]
+    if got == 0:
+        raise RuntimeError("FRED returned no usable series")
 
+    via = "API" if FRED_KEY else "fredgraph.csv"
     current["source"] = "FRED (IMF global prices)"
     current["updated_at"] = now_iso()
-    current["copper"] = {"units": "USD/lb", "series": copper}
-    current["aluminum"] = {"units": "USD/t", "series": alum}
-    current["note"] = "Live: FRED PCOPPUSDM / PALUMUSDM, monthly."
+    current["note"] = f"Live: FRED via {via}, {got}/{len(METALS)} metals, monthly."
     return current
 
 

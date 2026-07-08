@@ -7,7 +7,8 @@ them as static JSON into data/ for the front end to read.
 
   - EIA      -> electricity.json   (national trend + per-state prices)
   - FRED     -> commodities.json   (6 metals, monthly series)  [key optional, recommended]
-  - Finnhub  -> stocks.json        (quote per ticker, grouped by tier)
+  - Finnhub  -> stocks.json        (quote per ticker, tiers + ETFs)
+  - Yahoo    -> history.json       (~1y of daily closes per symbol)  [no key]
 """
 
 import json
@@ -39,12 +40,12 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def _fetch(url, timeout=30, retries=3):
+def _fetch(url, timeout=30, retries=3, ua="PaS.io/1.0"):
     # Retry transient failures (timeouts, resets, brief 5xx) before giving up.
     last = None
     for attempt in range(1, retries + 1):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "PaS.io/1.0"})
+            req = urllib.request.Request(url, headers={"User-Agent": ua})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.read().decode("utf-8")
         except Exception as e:
@@ -55,8 +56,8 @@ def _fetch(url, timeout=30, retries=3):
     raise last
 
 
-def get_json(url, timeout=30, retries=3):
-    return json.loads(_fetch(url, timeout, retries))
+def get_json(url, timeout=30, retries=3, ua="PaS.io/1.0"):
+    return json.loads(_fetch(url, timeout, retries, ua))
 
 
 def get_text(url, timeout=30, retries=3):
@@ -186,23 +187,28 @@ def fetch_commodities(current):
 
 # ---------------------------------------------------------------- Finnhub
 
+def all_symbols(stocks):
+    # Every quoted instrument: tier tickers plus the ETF row.
+    groups = [t["tickers"] for t in stocks["tiers"]] + [stocks.get("etfs", [])]
+    return [t for g in groups for t in g]
+
+
 def fetch_stocks(current):
     if not FINNHUB_KEY:
         raise RuntimeError("FINNHUB_API_KEY not set")
 
     ok = 0
-    for tier in current["tiers"]:
-        for t in tier["tickers"]:
-            url = f"https://finnhub.io/api/v1/quote?symbol={t['sym']}&token={FINNHUB_KEY}"
-            try:
-                q = get_json(url, timeout=20)
-                if q.get("c"):  # current price present
-                    t["price"] = round(float(q["c"]), 2)
-                    t["dp"] = round(float(q.get("dp") or 0), 2)
-                    ok += 1
-            except Exception as e:
-                print(f"  ! {t['sym']} quote failed: {e}")
-            time.sleep(1.1)  # stay under the 60 calls/minute free limit
+    for t in all_symbols(current):
+        url = f"https://finnhub.io/api/v1/quote?symbol={t['sym']}&token={FINNHUB_KEY}"
+        try:
+            q = get_json(url, timeout=20)
+            if q.get("c"):  # current price present
+                t["price"] = round(float(q["c"]), 2)
+                t["dp"] = round(float(q.get("dp") or 0), 2)
+                ok += 1
+        except Exception as e:
+            print(f"  ! {t['sym']} quote failed: {e}")
+        time.sleep(1.1)  # stay under the 60 calls/minute free limit
 
     if ok == 0:
         raise RuntimeError("no quotes returned (check key / rate limit)")
@@ -210,6 +216,44 @@ def fetch_stocks(current):
     current["source"] = "Finnhub"
     current["updated_at"] = now_iso()
     current["note"] = f"Live: Finnhub quotes ({ok} tickers). ~15-min delayed."
+    return current
+
+
+# ---------------------------------------------------------------- Yahoo (no key)
+
+BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+
+
+def fetch_history(current):
+    # Daily closes per symbol, trailing 1y, via Yahoo's chart API (keyless).
+    # (Stooq was the original source but now sits behind a JS anti-bot wall.)
+    symbols = [t["sym"] for t in all_symbols(load("stocks"))]
+    series, failed = {}, []
+    for sym in symbols:
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=1y&interval=1d"
+        try:
+            res = get_json(url, ua=BROWSER_UA)["chart"]["result"][0]
+            ts = res["timestamp"]
+            closes = res["indicators"]["quote"][0]["close"]
+            rows = [[datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%d"),
+                     round(float(c), 2)]
+                    for t, c in zip(ts, closes) if c is not None]
+            if not rows:
+                raise RuntimeError("no rows")
+            series[sym] = rows[-250:]
+        except Exception as e:
+            failed.append(sym)
+            print(f"  ! {sym} history failed: {e}")
+        time.sleep(0.5)  # politeness
+
+    if not series:
+        raise RuntimeError("Yahoo returned nothing")
+
+    current["source"] = "Yahoo Finance"
+    current["updated_at"] = now_iso()
+    current["series"] = {**current.get("series", {}), **series}  # keep old on partial failure
+    current["note"] = (f"Live: Yahoo daily closes, {len(series)}/{len(symbols)} symbols"
+                       + (f" (failed: {','.join(failed)})" if failed else "") + ".")
     return current
 
 
@@ -233,6 +277,7 @@ def main():
         "electricity": run("electricity", fetch_eia),
         "commodities": run("commodities", fetch_commodities),
         "stocks": run("stocks", fetch_stocks),
+        "history": run("history", fetch_history),
     }
     meta = load("meta")
     meta["generated_at"] = now_iso()

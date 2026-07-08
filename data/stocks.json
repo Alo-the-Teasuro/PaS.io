@@ -184,5 +184,31 @@
       ]
     }
   ],
-  "note": "Live: Finnhub quotes (22 tickers). ~15-min delayed."
+  "note": "Live: Finnhub quotes (22 tickers). ~15-min delayed.",
+  "etfs": [
+    {
+      "sym": "SMH",
+      "name": "VanEck Semiconductor",
+      "price": null,
+      "dp": null
+    },
+    {
+      "sym": "SRVR",
+      "name": "Data Ctr & Digital Infra",
+      "price": null,
+      "dp": null
+    },
+    {
+      "sym": "GRID",
+      "name": "Smart Grid Infrastructure",
+      "price": null,
+      "dp": null
+    },
+    {
+      "sym": "PAVE",
+      "name": "US Infrastructure",
+      "price": null,
+      "dp": null
+    }
+  ]
 }

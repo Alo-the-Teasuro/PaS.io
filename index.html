@@ -6,7 +6,7 @@
 <title>Picks &amp; Shovels — AI Infrastructure Index</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
@@ -18,7 +18,7 @@
   --copper:#cf7d47; --copper-hi:#e69158; --copper-deep:#7a4a28;
   --volt:#4c9be8; --volt-hi:#77b6ff;
   --up:#5ec27f; --down:#e26461;
-  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
   --disp:'Space Grotesk',system-ui,sans-serif;
   --body:'Inter',system-ui,sans-serif;
 }
@@ -85,14 +85,17 @@ section.block{padding:56px 0;border-top:1px solid var(--line)}
 .tier .t-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .tier h3{font-size:18px}
 .tier .why{color:var(--tx-2);font-size:14px;font-family:var(--mono)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.chip{font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:7px;
-  padding:7px 11px;background:var(--card);display:flex;align-items:center;gap:10px;min-width:118px}
-.chip .sym{font-weight:600;color:var(--tx)}
-.chip .px{margin-left:auto;color:var(--tx-2)}
-.chip .dp.up{color:var(--up)} .chip .dp.down{color:var(--down)}
-.chip .dp{font-size:12px}
-.chip .pending{color:var(--tx-mut);font-size:11px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px;margin-top:14px}
+.tk-card{font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:7px;
+  padding:10px 12px;background:var(--card)}
+.tk-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.tk-hd .sym{font-weight:600;color:var(--tx)}
+.tk-hd .px{margin-left:auto;color:var(--tx-2)}
+.tk-hd .dp.up{color:var(--up)} .tk-hd .dp.down{color:var(--down)}
+.tk-hd .dp{font-size:12px}
+.tk-hd .pending{margin-left:auto;color:var(--tx-mut);font-size:11px}
+.tk-nohist{height:130px;display:flex;align-items:center;justify-content:center;
+  color:var(--tx-mut);font-size:11px;border:1px dashed var(--line);border-radius:6px}
 
 /* power grid + charts */
 .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
@@ -143,8 +146,13 @@ canvas{max-width:100%}
 .stack-col .layer{display:flex;justify-content:space-between;align-items:center;gap:16px;
   border:1px solid var(--line);border-left:3px solid var(--line-2);border-radius:6px;
   padding:10px 14px;margin-bottom:6px;font-size:14px;background:var(--surface);
-  transition:transform .15s,border-color .15s}
+  transition:transform .15s,border-color .15s;position:relative}
 .stack-col .layer:hover{transform:translateX(4px);border-color:var(--line-2)}
+.stack-col .layer[data-tip]:hover::after{content:attr(data-tip);position:absolute;
+  left:10px;right:10px;bottom:calc(100% + 6px);z-index:8;background:var(--raised);
+  border:1px solid var(--line-2);border-radius:7px;padding:9px 12px;
+  font-family:var(--body);font-size:12.5px;line-height:1.5;color:var(--tx-2);
+  box-shadow:0 8px 24px rgba(0,0,0,.45);pointer-events:none}
 .layer .lm{font-family:var(--mono);font-size:12px;color:var(--tx-2);text-align:right}
 .layer.th{border-left-color:#e0a34f;background:rgba(224,163,79,.07)}
 .layer.cu{border-left-color:var(--copper);background:rgba(207,125,71,.08)}
@@ -164,6 +172,10 @@ footer{border-top:1px solid var(--line);padding:40px 0 64px;color:var(--tx-mut);
 footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
 footer .mono{font-family:var(--mono)}
 .disc{max-width:52ch;line-height:1.6}
+.legal{border-top:1px solid var(--line);margin-top:28px;padding-top:22px;flex-basis:100%;
+  font-size:11.5px;line-height:1.7;color:var(--tx-mut)}
+.legal p{margin:0 0 10px;max-width:96ch}
+.legal .copy{font-family:var(--mono);letter-spacing:.06em;margin-top:14px}
 
 @media(max-width:760px){.hero .wrap{grid-template-columns:1fr;gap:32px}}
 </style>
@@ -205,6 +217,11 @@ footer .mono{font-family:var(--mono)}
         ~15-minute delayed from Finnhub.</p>
     </div>
     <div id="tiers"></div>
+    <div class="tier" id="etfRow" style="border-left:3px solid var(--copper)">
+      <div class="t-top"><h3>ETF · One-ticket exposure</h3>
+        <span class="why">The whole stack without picking a layer</span></div>
+      <div class="chips" id="etfs"></div>
+    </div>
   </div>
 </section>
 
@@ -293,20 +310,20 @@ footer .mono{font-family:var(--mono)}
     </div>
     <div class="grid2">
       <div class="stack-col">
-        <div class="layer th"><span>Cooler &amp; heat pipes</span><span class="lm">aluminum · copper</span></div>
-        <div class="layer th"><span>Thermal interface</span><span class="lm">indium</span></div>
-        <div class="layer th"><span>Heat spreader</span><span class="lm">nickel-plated copper</span></div>
+        <div class="layer th" data-tip="Each AI accelerator dumps ~1kW of heat. This is the first meter of the datacenter cooling problem — the same physics that makes Vertiv and Trane AI trades."><span>Cooler &amp; heat pipes</span><span class="lm">aluminum · copper</span></div>
+        <div class="layer th" data-tip="A soft indium foil squeezed between die and lid — it fills microscopic gaps so heat can actually cross the boundary. Tiny tonnage, no substitute."><span>Thermal interface</span><span class="lm">indium</span></div>
+        <div class="layer th" data-tip="The metal lid that spreads concentrated hotspots into something the cooler can handle. Nickel plating stops corrosion — one reason nickel sits in the metals watchlist."><span>Heat spreader</span><span class="lm">nickel-plated copper</span></div>
         <div class="die">
           <span class="dlab">GPU DIE</span>
-          <div class="layer cu"><span>Bond pads</span><span class="lm">aluminum</span></div>
-          <div class="layer cu"><span>Wiring — 10–15 layers</span><span class="lm">copper · tantalum · ruthenium</span></div>
-          <div class="layer cu"><span>Contacts</span><span class="lm">tungsten · cobalt</span></div>
-          <div class="layer si"><span>Transistors</span><span class="lm">silicon · hafnium oxide · SiGe</span></div>
+          <div class="layer cu" data-tip="Where the die's nanoscale wiring meets the package's macro world — the last aluminum in an otherwise copper stack."><span>Bond pads</span><span class="lm">aluminum</span></div>
+          <div class="layer cu" data-tip="Kilometers of nanoscale copper interconnect in every die, distributing signal and power. Tantalum and ruthenium line the walls so copper doesn't poison the silicon."><span>Wiring — 10–15 layers</span><span class="lm">copper · tantalum · ruthenium</span></div>
+          <div class="layer cu" data-tip="Tungsten plugs wire each transistor up into the interconnect stack. Tungsten and cobalt are chokepoint metals — trivial tonnage, concentrated supply."><span>Contacts</span><span class="lm">tungsten · cobalt</span></div>
+          <div class="layer si" data-tip="The compute itself — tens of billions of switches. Hafnium oxide keeps them from leaking; SiGe strains the channel for speed. This is what all the layers above and below exist to serve."><span>Transistors</span><span class="lm">silicon · hafnium oxide · SiGe</span></div>
         </div>
-        <div class="layer cu"><span>Microbumps</span><span class="lm">tin-silver-copper</span></div>
-        <div class="layer si"><span>Interposer (CoWoS) <span class="hbm-tag">+ HBM stacks — Cu TSVs</span></span><span class="lm">silicon · copper</span></div>
-        <div class="layer cu"><span>Package substrate</span><span class="lm">copper · gold pads</span></div>
-        <div class="layer cu"><span>Board &amp; power delivery</span><span class="lm">copper · GaN</span></div>
+        <div class="layer cu" data-tip="Tens of thousands of solder joints per package — tin demand at silicon scale. One reason tin doubled while everyone watched copper."><span>Microbumps</span><span class="lm">tin-silver-copper</span></div>
+        <div class="layer si" data-tip="The silicon shelf that lets GPU and HBM sit millimeters apart, wired by copper through-silicon vias. CoWoS capacity — not transistors — is the packaging bottleneck of the AI buildout."><span>Interposer (CoWoS) <span class="hbm-tag">+ HBM stacks — Cu TSVs</span></span><span class="lm">silicon · copper</span></div>
+        <div class="layer cu" data-tip="Fans the die's thousands of connections out to board pitch. Gold-plated pads carry every signal in and out; substrate supply constrained several GPU generations."><span>Package substrate</span><span class="lm">copper · gold pads</span></div>
+        <div class="layer cu" data-tip="Steps hundreds of amps down to ~1 volt at the die edge. GaN converters shrink the power stage — power delivery is now a first-order design constraint, which is why Eaton sells to AI."><span>Board &amp; power delivery</span><span class="lm">copper · GaN</span></div>
       </div>
       <div class="panel why-panel">
         <div class="wp"><b>Grams, not tons</b>
@@ -327,11 +344,29 @@ footer .mono{font-family:var(--mono)}
 <footer>
   <div class="wrap">
     <div class="mono">
-      SOURCES — EIA (electricity) · FRED (metals) · Finnhub (equities)<br>
+      SOURCES — EIA (electricity) · FRED (metals) · Finnhub (equities) · Yahoo (history)<br>
       <span id="genline" style="color:var(--tx-mut)"></span>
     </div>
     <p class="disc">Informational only. This is not investment advice and not a recommendation to buy
       or sell any security. Data may be delayed or incomplete. Do your own research.</p>
+    <div class="legal">
+      <p><strong>No investment advice.</strong> The content of this site is provided for informational and
+        educational purposes only. Nothing on this site constitutes investment advice, financial advice,
+        trading advice, or a recommendation, offer, or solicitation to buy or sell any security, commodity,
+        or other financial instrument. The operator of this site is not a registered investment adviser,
+        broker-dealer, or financial planner. Consult a licensed financial professional before making any
+        investment decision.</p>
+      <p><strong>Data disclaimer.</strong> Market data is sourced from third parties — the U.S. Energy
+        Information Administration (EIA), Federal Reserve Economic Data (FRED, St. Louis Fed), Finnhub, and
+        Yahoo Finance — and is provided "as is" without warranty of any kind, express or implied. Equity
+        quotes are delayed at least 15 minutes. Data may be inaccurate, incomplete, or out of date, and no
+        guarantee is made as to its accuracy. Past performance is not indicative of future results.</p>
+      <p><strong>Trademarks.</strong> All company names, tickers, and logos are the property of their
+        respective owners. Their appearance on this site does not imply any affiliation with, or endorsement
+        by, those companies. This site is independent and unaffiliated with EIA, the Federal Reserve,
+        Finnhub, Yahoo, or any listed company.</p>
+      <p class="copy">© 2026 PICKS &amp; SHOVELS (PAS.IO) — ALL RIGHTS RESERVED</p>
+    </div>
   </div>
 </footer>
 
@@ -360,8 +395,10 @@ const SEED = {
     {name:"Power & cooling",why:"Racks need megawatts and chillers",tickers:[{sym:"VRT"},{sym:"ETN"},{sym:"GEV"},{sym:"TT"}]},
     {name:"Grid & generation",why:"Electrons are the bottleneck",tickers:[{sym:"CEG"},{sym:"VST"},{sym:"PWR"}]},
     {name:"Materials & build",why:"~27 tons of copper per MW",tickers:[{sym:"FCX"},{sym:"SCCO"},{sym:"AA"},{sym:"STRL"}]}
-  ]},
-  meta:{generated_at:null,live:{electricity:false,commodities:false,stocks:false}}
+  ],
+  etfs:[{sym:"SMH",name:"VanEck Semiconductor"},{sym:"SRVR",name:"Data Ctr & Digital Infra"},{sym:"GRID",name:"Smart Grid Infrastructure"},{sym:"PAVE",name:"US Infrastructure"}]},
+  history:{series:{}},
+  meta:{generated_at:null,live:{electricity:false,commodities:false,stocks:false,history:false}}
 };
 
 const GRID={ // state -> [row, col] in an 11-col tile map
@@ -390,16 +427,18 @@ async function grab(name){
 }
 
 async function boot(){
-  const [el,co,st,mt]=await Promise.all([grab("electricity"),grab("commodities"),grab("stocks"),grab("meta")]);
+  const [el,co,st,mt,hi]=await Promise.all([grab("electricity"),grab("commodities"),grab("stocks"),grab("meta"),grab("history")]);
   const D={
     electricity: el||SEED.electricity,
     commodities: co||SEED.commodities,
     stocks: st||SEED.stocks,
-    meta: mt||SEED.meta
+    meta: mt||SEED.meta,
+    history: hi||SEED.history
   };
-  renderStatus(D.meta,{el:!!el,co:!!co,st:!!st});
+  renderStatus(D.meta,{el:!!el,co:!!co,st:!!st,hi:!!hi});
   renderStrata(D.stocks);
-  renderTiers(D.stocks);
+  renderTiers(D.stocks,D.history);
+  renderETFs(D.stocks,D.history);
   renderHeat(D.electricity);
   renderElec(D.electricity);
   renderMetals(D.commodities);
@@ -408,7 +447,7 @@ async function boot(){
 function renderStatus(meta,got){
   const feeds=document.getElementById("feeds");
   const live=meta.live||{};
-  const rows=[["EIA","electricity",got.el],["FRED","commodities",got.co],["FINNHUB","stocks",got.st]];
+  const rows=[["EIA","electricity",got.el],["FRED","commodities",got.co],["FINNHUB","stocks",got.st],["YAHOO","history",got.hi]];
   feeds.innerHTML=rows.map(([lab,key,fetched])=>{
     const isLive=fetched&&live[key];
     const cls=isLive?"live":(fetched?"seed":"seed");
@@ -444,25 +483,43 @@ function renderStrata(stocks){
 
 function fmtPx(p){return p==null?null:"$"+Number(p).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
 
-function renderTiers(stocks){
+function tickerCard(tk){
+  const px=fmtPx(tk.price);
+  let right;
+  if(px==null){right=`<span class="pending">live feed</span>`;}
+  else{
+    const dp=tk.dp, cls=dp>0?"up":dp<0?"down":"", sign=dp>0?"+":"";
+    right=`<span class="px">${px}</span>${dp!=null?`<span class="dp ${cls}">${sign}${dp}%</span>`:""}`;
+  }
+  return `<div class="tk-card"><div class="tk-hd"><span class="sym">${tk.sym}</span>${right}</div>
+    <div class="chart-box xs" id="hbox_${tk.sym}"></div></div>`;
+}
+
+function drawTickerCharts(tickers,hist){
+  const series=(hist&&hist.series)||{};
+  for(const tk of tickers){
+    const box=document.getElementById("hbox_"+tk.sym);
+    if(!box) continue;
+    const s=series[tk.sym];
+    if(!s||!s.length){box.innerHTML=`<div class="tk-nohist">history pending — next pipeline run</div>`;continue;}
+    const up=s[s.length-1][1]>=s[0][1];
+    box.innerHTML=`<canvas id="h_${tk.sym}"></canvas>`;
+    line("h_"+tk.sym,s.map(x=>x[0].slice(2,7)),s.map(x=>x[1]),up?"#5ec27f":"#e26461",4);
+  }
+}
+
+function renderTiers(stocks,hist){
   const box=document.getElementById("tiers");
-  box.innerHTML=stocks.tiers.map((t,i)=>{
-    const chips=t.tickers.map(tk=>{
-      const px=fmtPx(tk.price);
-      const dp=tk.dp;
-      let right;
-      if(px==null){right=`<span class="pending">live feed</span>`;}
-      else{
-        const cls=dp>0?"up":dp<0?"down":"";
-        const sign=dp>0?"+":"";
-        right=`<span class="px">${px}</span>${dp!=null?`<span class="dp ${cls}">${sign}${dp}%</span>`:""}`;
-      }
-      return `<span class="chip"><span class="sym">${tk.sym}</span>${right}</span>`;
-    }).join("");
-    return `<div class="tier">
+  box.innerHTML=stocks.tiers.map((t,i)=>`<div class="tier">
       <div class="t-top"><h3>L${i} · ${t.name}</h3><span class="why">${t.why}</span></div>
-      <div class="chips">${chips}</div></div>`;
-  }).join("");
+      <div class="chips">${t.tickers.map(tickerCard).join("")}</div></div>`).join("");
+  drawTickerCharts(stocks.tiers.flatMap(t=>t.tickers),hist);
+}
+
+function renderETFs(stocks,hist){
+  const etfs=stocks.etfs||[];
+  document.getElementById("etfs").innerHTML=etfs.map(tickerCard).join("");
+  drawTickerCharts(etfs,hist);
 }
 
 const NAMES={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","District of Columbia":"DC","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY"};
@@ -502,8 +559,6 @@ async function drawMap(elec){
     .attr("fill",d=>{const ab=NAMES[d.properties.name];const v=ab?elec.states[ab]:null;
       return v==null?"#242b35":bucket(v).bg;})
     .attr("stroke","#0e1116").attr("stroke-width",1)
-    .on("mouseenter",function(){d3.select(this).attr("stroke","#e8e6e0").attr("stroke-width",1.5).raise();})
-    .on("mouseleave",function(){d3.select(this).attr("stroke","#0e1116").attr("stroke-width",1);})
     .append("title").text(d=>{const ab=NAMES[d.properties.name];const v=ab?elec.states[ab]:null;
       return v==null?d.properties.name:`${d.properties.name} — ${v}¢/kWh`;});
   return true;
@@ -524,21 +579,21 @@ function renderTiles(elec,heat){
   });
 }
 
-const chartBase=(mono)=>({
+const chartBase=(mono,xticks)=>({
   responsive:true,maintainAspectRatio:false,
   plugins:{legend:{display:false},tooltip:{titleFont:{family:mono},bodyFont:{family:mono}}},
   scales:{
-    x:{grid:{color:"#232a34"},ticks:{color:"#626b78",font:{family:mono,size:10},maxRotation:0,autoSkip:true,maxTicksLimit:6}},
+    x:{grid:{color:"#232a34"},ticks:{color:"#626b78",font:{family:mono,size:10},maxRotation:0,autoSkip:true,maxTicksLimit:xticks||6}},
     y:{grid:{color:"#232a34"},ticks:{color:"#626b78",font:{family:mono,size:10}}}
   }
 });
-const MONO="'IBM Plex Mono',monospace";
+const MONO="'JetBrains Mono',monospace";
 
-function line(id,labels,data,color){
+function line(id,labels,data,color,xticks){
   new Chart(document.getElementById(id),{type:"line",
     data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+"22",
       borderWidth:2,fill:true,tension:.3,pointRadius:0,pointHoverRadius:4}]},
-    options:chartBase(MONO)});
+    options:chartBase(MONO,xticks)});
 }
 
 function renderElec(elec){

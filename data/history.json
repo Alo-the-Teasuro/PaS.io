@@ -1,0 +1,6 @@
+{
+  "source": "seed",
+  "updated_at": null,
+  "series": {},
+  "note": "Populated by the pipeline from Stooq (trailing ~1y of daily closes per ticker)."
+}

@@ -3,3 +3,6 @@
 CLAUDE.md
 HANDOFF.md
 tasks/
+
+# Python
+__pycache__/

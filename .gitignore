@@ -1,0 +1,5 @@
+# Claude Code workflow files — local only, never part of the site
+.claude/
+CLAUDE.md
+HANDOFF.md
+tasks/

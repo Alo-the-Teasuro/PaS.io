@@ -1,6 +1,6 @@
 {
   "source": "FRED (IMF global prices)",
-  "updated_at": "2026-07-08T02:36:48+00:00",
+  "updated_at": "2026-07-08T02:51:52+00:00",
   "copper": {
     "units": "USD/lb",
     "series": [
@@ -895,5 +895,5 @@
       ]
     ]
   },
-  "note": "Live: FRED via fredgraph.csv, 6/6 metals, monthly."
+  "note": "Live: FRED via API, 6/6 metals, monthly."
 }

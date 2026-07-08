@@ -113,6 +113,8 @@ section.block{padding:56px 0;border-top:1px solid var(--line)}
 .stat b{display:block;font-size:22px;color:var(--tx);font-weight:600}
 .stat span{font-size:11px;color:var(--tx-mut);text-transform:uppercase;letter-spacing:.1em}
 canvas{max-width:100%}
+.chart-box{position:relative;height:200px}
+.chart-box.sm{height:170px}
 
 /* metals */
 .metals{display:grid;grid-template-columns:1fr 1fr;gap:24px}
@@ -213,7 +215,7 @@ footer .mono{font-family:var(--mono)}
       </div>
       <div class="panel">
         <h3>US average — ¢/kWh</h3>
-        <canvas id="elecChart" height="200"></canvas>
+        <div class="chart-box"><canvas id="elecChart"></canvas></div>
         <div class="stat-row" id="elecStats"></div>
       </div>
     </div>
@@ -233,12 +235,12 @@ footer .mono{font-family:var(--mono)}
       <div class="panel">
         <div class="metal-hd"><h3 style="margin:0;text-transform:none;font-family:var(--disp);font-size:17px;color:var(--tx)">Copper</h3>
           <span class="now copper" id="copperNow">—</span></div>
-        <canvas id="copperChart" height="170"></canvas>
+        <div class="chart-box sm"><canvas id="copperChart"></canvas></div>
       </div>
       <div class="panel">
         <div class="metal-hd"><h3 style="margin:0;text-transform:none;font-family:var(--disp);font-size:17px;color:var(--tx)">Aluminum</h3>
           <span class="now alu" id="aluNow">—</span></div>
-        <canvas id="aluChart" height="170"></canvas>
+        <div class="chart-box sm"><canvas id="aluChart"></canvas></div>
       </div>
     </div>
     <div class="note">Chokepoint materials behave as geopolitical risk indicators rather than price

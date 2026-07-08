@@ -1,6 +1,6 @@
 {
   "source": "Finnhub",
-  "updated_at": "2026-07-08T02:52:18+00:00",
+  "updated_at": "2026-07-08T12:51:14+00:00",
   "tiers": [
     {
       "id": "apps",
@@ -184,31 +184,31 @@
       ]
     }
   ],
-  "note": "Live: Finnhub quotes (22 tickers). ~15-min delayed.",
+  "note": "Live: Finnhub quotes (26 tickers). ~15-min delayed.",
   "etfs": [
     {
       "sym": "SMH",
       "name": "VanEck Semiconductor",
-      "price": null,
-      "dp": null
+      "price": 581.45,
+      "dp": -3.78
     },
     {
       "sym": "SRVR",
       "name": "Data Ctr & Digital Infra",
-      "price": null,
-      "dp": null
+      "price": 30.89,
+      "dp": -0.45
     },
     {
       "sym": "GRID",
       "name": "Smart Grid Infrastructure",
-      "price": null,
-      "dp": null
+      "price": 182.37,
+      "dp": -2.69
     },
     {
       "sym": "PAVE",
       "name": "US Infrastructure",
-      "price": null,
-      "dp": null
+      "price": 56.44,
+      "dp": -2.4
     }
   ]
 }

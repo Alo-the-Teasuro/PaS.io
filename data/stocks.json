@@ -1,6 +1,6 @@
 {
   "source": "Finnhub",
-  "updated_at": "2026-08-04T13:07:42+00:00",
+  "updated_at": "2026-08-05T13:03:21+00:00",
   "tiers": [
     {
       "id": "apps",
@@ -10,20 +10,20 @@
         {
           "sym": "MSFT",
           "name": "Microsoft",
-          "price": 487.65,
-          "dp": 4.93
+          "price": 492.81,
+          "dp": 1.06
         },
         {
           "sym": "GOOGL",
           "name": "Alphabet",
-          "price": 373.51,
-          "dp": 4.88
+          "price": 377.65,
+          "dp": 1.11
         },
         {
           "sym": "META",
           "name": "Meta",
-          "price": 590.24,
-          "dp": 6.02
+          "price": 587.94,
+          "dp": -0.39
         }
       ]
     },
@@ -35,26 +35,26 @@
         {
           "sym": "NVDA",
           "name": "Nvidia",
-          "price": 206.64,
-          "dp": 2.93
+          "price": 211.94,
+          "dp": 2.56
         },
         {
           "sym": "AMD",
           "name": "AMD",
-          "price": 484.64,
-          "dp": 1.78
+          "price": 518.58,
+          "dp": 7.0
         },
         {
           "sym": "AVGO",
           "name": "Broadcom",
-          "price": 392.23,
-          "dp": 0.76
+          "price": 418.16,
+          "dp": 6.61
         },
         {
           "sym": "TSM",
           "name": "TSMC",
-          "price": 406.11,
-          "dp": 0.46
+          "price": 417.17,
+          "dp": 2.72
         }
       ]
     },
@@ -66,8 +66,8 @@
         {
           "sym": "MU",
           "name": "Micron",
-          "price": 829.5,
-          "dp": 0.79
+          "price": 892.67,
+          "dp": 7.62
         }
       ]
     },
@@ -79,20 +79,20 @@
         {
           "sym": "ASML",
           "name": "ASML",
-          "price": 1642.52,
-          "dp": 0.83
+          "price": 1711.89,
+          "dp": 4.22
         },
         {
           "sym": "AMAT",
           "name": "Applied Materials",
-          "price": 518.21,
-          "dp": 2.08
+          "price": 546.62,
+          "dp": 5.48
         },
         {
           "sym": "LRCX",
           "name": "Lam Research",
-          "price": 294.61,
-          "dp": 0.54
+          "price": 317.74,
+          "dp": 7.85
         }
       ]
     },
@@ -104,26 +104,26 @@
         {
           "sym": "VRT",
           "name": "Vertiv",
-          "price": 263.05,
-          "dp": 8.89
+          "price": 269.93,
+          "dp": 2.62
         },
         {
           "sym": "ETN",
           "name": "Eaton",
-          "price": 438.23,
-          "dp": 5.55
+          "price": 444.77,
+          "dp": 1.49
         },
         {
           "sym": "GEV",
           "name": "GE Vernova",
-          "price": 1006.76,
-          "dp": 1.66
+          "price": 1018.53,
+          "dp": 1.17
         },
         {
           "sym": "TT",
           "name": "Trane",
-          "price": 461.21,
-          "dp": 1.38
+          "price": 472.24,
+          "dp": 2.39
         }
       ]
     },
@@ -135,20 +135,20 @@
         {
           "sym": "CEG",
           "name": "Constellation",
-          "price": 273.71,
-          "dp": 4.17
+          "price": 267.25,
+          "dp": -2.36
         },
         {
           "sym": "VST",
           "name": "Vistra",
-          "price": 155.94,
-          "dp": 5.23
+          "price": 143.23,
+          "dp": -8.15
         },
         {
           "sym": "PWR",
           "name": "Quanta Services",
-          "price": 680.2,
-          "dp": 1.92
+          "price": 693.0,
+          "dp": 1.88
         }
       ]
     },
@@ -160,26 +160,26 @@
         {
           "sym": "FCX",
           "name": "Freeport-McMoRan",
-          "price": 63.64,
-          "dp": 1.61
+          "price": 67.3,
+          "dp": 5.75
         },
         {
           "sym": "SCCO",
           "name": "Southern Copper",
-          "price": 185.91,
-          "dp": 1.75
+          "price": 195.16,
+          "dp": 4.98
         },
         {
           "sym": "AA",
           "name": "Alcoa",
-          "price": 44.84,
-          "dp": -0.93
+          "price": 46.83,
+          "dp": 4.44
         },
         {
           "sym": "STRL",
           "name": "Sterling Infra",
-          "price": 611.47,
-          "dp": 2.46
+          "price": 541.62,
+          "dp": -11.42
         }
       ]
     }
@@ -189,26 +189,26 @@
     {
       "sym": "SMH",
       "name": "VanEck Semiconductor",
-      "price": 545.46,
-      "dp": 0.91
+      "price": 575.71,
+      "dp": 5.55
     },
     {
       "sym": "SRVR",
       "name": "Data Ctr & Digital Infra",
-      "price": 31.2,
-      "dp": 1.07
+      "price": 31.93,
+      "dp": 2.34
     },
     {
       "sym": "GRID",
       "name": "Smart Grid Infrastructure",
-      "price": 182.02,
-      "dp": 1.49
+      "price": 186.76,
+      "dp": 2.6
     },
     {
       "sym": "PAVE",
       "name": "US Infrastructure",
-      "price": 57.54,
-      "dp": 2.09
+      "price": 58.58,
+      "dp": 1.81
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "source": "FRED (IMF global prices)",
-  "updated_at": "2026-10-06T17:10:47+00:00",
+  "updated_at": "2026-10-07T17:47:58+00:00",
   "copper": {
     "units": "USD/lb",
     "series": [

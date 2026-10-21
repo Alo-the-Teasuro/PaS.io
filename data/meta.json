@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-20T15:38:50+00:00",
+  "generated_at": "2026-10-21T15:57:03+00:00",
   "live": {
     "electricity": true,
-    "commodities": true,
+    "commodities": false,
     "stocks": true,
     "history": true
   }

@@ -1,6 +1,6 @@
 {
   "source": "EIA API v2",
-  "updated_at": "2026-10-21T15:56:14+00:00",
+  "updated_at": "2026-10-22T15:51:43+00:00",
   "national": {
     "units": "cents/kWh",
     "series": [
@@ -46,7 +46,7 @@
       ],
       [
         "2025",
-        17.3
+        17.23
       ]
     ]
   },
